@@ -29,7 +29,7 @@ namespace AimsUtility.DataTables{
         /// Constructor that initializes the metadata of the connector
         /// </summary>
         /// <param name="Metadata">Serialized table described in the readme. Columns are split by backtick (`) and rows are split by tilda (~)</param>
-        public DataTableConnector(string Metadata, string BearerToken, string ColDelim = "`", string RowDelim = "~")
+        public DataTableConnector(string Metadata, string BearerToken)
         {
             // init variables
             this.Api                     = new ApiClient(BearerToken);
