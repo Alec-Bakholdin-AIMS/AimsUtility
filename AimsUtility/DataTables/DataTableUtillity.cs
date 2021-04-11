@@ -5,6 +5,7 @@ using GenericParsing;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using OfficeOpenXml;
 
 namespace AimsUtility.DataTables
 {
@@ -91,7 +92,7 @@ namespace AimsUtility.DataTables
         /// <param name="table">The table to convert</param>
         /// <param name="dateFormat">The string format of dates</param>
         /// <returns>A MemoryStream representing the data in the CSV file</param>
-        public static MemoryStream ToCSV(this DataTable table, string dateFormat)
+        public static MemoryStream ToCSV(this DataTable table, string dateFormat = "yyyy-MM-dd")
         {
             // get columns and create stream to output
             var columns = table.GetColumnNames();
@@ -130,6 +131,38 @@ namespace AimsUtility.DataTables
             
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
+        }
+
+        /// <summary>
+        /// Uses EPPlus's non-commercial license to convert the data table into an Xlsx file
+        /// </summary>
+        /// <param name="table">The table to be converted</param>
+        /// <returns>The memory stream representing the file</returns>
+        public static MemoryStream ToXLSX(this DataTable table)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;           
+            
+            // initialize file
+            var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("sheet1");
+
+            var colNames = table.GetColumnNames();
+            // set headers
+            for(int i = 0; i < colNames.Count; i++)
+            {
+                ws.Cells[1, i + 1].Value = colNames[i];
+            }
+
+            // insert row data into Xlsx
+            for(int i = 0; i < table.Rows.Count; i++)
+            {
+                for(int j = 0; j < colNames.Count; j++)
+                {
+                    ws.Cells[i + 2, j + 1].Value = table.Rows[i][j];
+                }
+            }
+
+            return new MemoryStream(package.GetAsByteArray());
         }
     }
 }
