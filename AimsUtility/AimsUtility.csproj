@@ -5,6 +5,7 @@
     <PackageId>AimsUtility</PackageId>
     <Version>1.0.3</Version>
     <Authors>Alec Bakholdin</Authors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
