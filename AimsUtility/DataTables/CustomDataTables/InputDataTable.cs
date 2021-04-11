@@ -5,7 +5,7 @@ using System.Collections;
 
 using System.Collections.Generic;
 
-namespace DataTableUtil.DataTables{
+namespace AimsUtility.DataTables{
     public class InputDataTable : DataTable{
         
         // * * * * * * * * * * Storing Exceptions * * * * * * * * * *

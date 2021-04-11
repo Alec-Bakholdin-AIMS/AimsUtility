@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 
-namespace DataTableUtil.DataTables
+namespace AimsUtility.DataTables
 {
     public class MismatchedValueException : Exception
     {

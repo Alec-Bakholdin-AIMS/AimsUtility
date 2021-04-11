@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataTableUtil.DataTables{
+namespace AimsUtility.DataTables{
     public class DataTableConnector{
 
         // * * * * * * * * * * Metadata variables * * * * * * * * * *

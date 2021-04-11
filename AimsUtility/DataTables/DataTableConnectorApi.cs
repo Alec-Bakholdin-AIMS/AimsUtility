@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RestSharp;
 
-namespace DataTableUtil.DataTables{
+namespace AimsUtility.DataTables{
     public class DataTableConnectorApi{
         // * * * * * * * * * * Public variables * * * * * * * * * *
         public string BearerToken;

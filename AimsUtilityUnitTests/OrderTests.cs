@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AimsUtility.Orders;
 using Newtonsoft.Json;
 
-namespace DataTableUtilUnitTests
+namespace AimsUtilityUnitTests
 {
     [TestClass]
     public class OrderTests

@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace DataTableUtil.Orders
+namespace AimsUtility.Orders
 {
     // order/root of everything here
     public class OrderJsonFields

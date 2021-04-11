@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Data;
 
-namespace DataTableUtil.DataTables
+namespace AimsUtility.DataTables
 {
 
     public class ExceptionContainer

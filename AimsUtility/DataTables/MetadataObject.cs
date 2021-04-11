@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 
 
-namespace DataTableUtil.DataTables{
+namespace AimsUtility.DataTables{
     public class MetadataObject{
 
         // * * * * * * * * * * Public Variables * * * * * * * * * *

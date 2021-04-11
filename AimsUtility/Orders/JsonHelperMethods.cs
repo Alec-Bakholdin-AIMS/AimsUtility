@@ -1,6 +1,6 @@
 using System;
 
-namespace DataTableUtil.Orders
+namespace AimsUtility.Orders
 {
     public static class JsonHelperMethods
     {

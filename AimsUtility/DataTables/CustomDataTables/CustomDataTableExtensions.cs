@@ -2,7 +2,7 @@ using System.Data;
 using System.Linq;
 using System;
 
-namespace DataTableUtil.DataTables
+namespace AimsUtility.DataTables
 {
     public static class CustomDataTableExtensions
     {

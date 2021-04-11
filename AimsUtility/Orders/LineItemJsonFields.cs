@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace DataTableUtil.Orders
+namespace AimsUtility.Orders
 {
     public class LineItemJsonFields
     {

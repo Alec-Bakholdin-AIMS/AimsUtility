@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace DataTableUtil.DataTables
+namespace AimsUtility.DataTables
 {
     public class NoApiResultException : Exception
     {
