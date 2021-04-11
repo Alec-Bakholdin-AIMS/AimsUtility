@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using AimsUtility.Api;
 
 
 namespace AimsUtility.DataTables{
@@ -26,7 +27,7 @@ namespace AimsUtility.DataTables{
         public bool IsApiCall;
         public string ApiCall;
         public string ApiPath;
-        public DataTableConnectorApi Api;
+        public ApiClient Api;
 
         public string PostMappingStr;
         public Dictionary<string, string> PostMapping;
@@ -36,14 +37,13 @@ namespace AimsUtility.DataTables{
         /// Primary constructor for the metadata objects,
         /// used to help with data table connection
         /// </summary>
-        /// <param name="RowStr">String of the metadata representing the data to be inserted into this object</param>
+        /// <param name="RowStr">String of the metadata representing the data to be inserted into this object. Columns are separated by backticks (`)</param>
         /// <param name="Api">Object that contains methods for api calls that this object might need to make</param>
-        /// <param name="ColDelim">The delimiter used to delimit different columns of the Row string</param>
-        public MetadataObject(string RowStr, DataTableConnectorApi Api, string ColDelim = "`")
+        public MetadataObject(string RowStr, ApiClient Api)
         {
             this.Api = Api;
             this.RowStr = RowStr;
-            this.RowArr = RowStr.Split(ColDelim);
+            this.RowArr = RowStr.Split("`");
 
             // get raw data from metadata
             this.OutputColumn   = RowArr[0];
@@ -187,7 +187,7 @@ namespace AimsUtility.DataTables{
             }
 
             // get response from API
-            var restResponse = await this.Api.GetFromApi(url);
+            var restResponse = await this.Api.GetAsync(url);
 
             if(!restResponse.IsSuccessful)
                 throw new HttpRequestException($"Api request for {OutputColumn} was not successful. Response: {restResponse.StatusCode}, {restResponse.Content}. Call: {url}");

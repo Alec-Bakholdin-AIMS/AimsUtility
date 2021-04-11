@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using AimsUtility.Api;
 
 namespace AimsUtility.DataTables{
     public class DataTableConnector{
@@ -20,22 +21,20 @@ namespace AimsUtility.DataTables{
     
 
         // * * * * * * * * * * Private variables * * * * * * * * * *
-        private DataTableConnectorApi Api;
+        private ApiClient Api;
         private Action<string> LoggingFunction = null;
 
 
         /// <summary>
         /// Constructor that initializes the metadata of the connector
         /// </summary>
-        /// <param name="Metadata">Serialized table described in the readme</param>
-        /// <param name="ColDelim">The delimiter that separates columns</param>
-        /// <param name="RowDelim">The delimiter that separates rows</param>
+        /// <param name="Metadata">Serialized table described in the readme. Columns are split by backtick (`) and rows are split by tilda (~)</param>
         public DataTableConnector(string Metadata, string BearerToken, string ColDelim = "`", string RowDelim = "~")
         {
             // init variables
-            this.Api                     = new DataTableConnectorApi(BearerToken);
+            this.Api                     = new ApiClient(BearerToken);
             this.Metadata                = Metadata;
-            this.MetadataRows            = Metadata.Split(RowDelim);
+            this.MetadataRows            = Metadata.Split("~");
             this.MetadataObjects         = new List<MetadataObject>();
             this.MetadataObjectsByOutput = new Dictionary<string, MetadataObject>();
             this.ExceptionsByDataRow     = new Dictionary<DataRow, List<Exception>>();
@@ -57,17 +56,15 @@ namespace AimsUtility.DataTables{
         /// to specify how many threads the API will have active at once (so as not to overload
         /// servers)
         /// </summary>
-        /// <param name="Metadata">Serialized table described in the readme</param>
+        /// <param name="Metadata">Serialized table described in the readme. Columns are split by backtick (`) and rows are split by tilda (~)</param>
         /// <param name="BearerToken">The token used for AIMS360 authorization</param>
         /// <param name="MaxNumThreads">The maximum number of threads that can be waiting for a response from the API at once (sempahore behavior)</param>
-        /// <param name="ColDelim">The delimiter that separates columns</param>
-        /// <param name="RowDelim">The delimiter that separates rows</param> 
-        public DataTableConnector(string Metadata, string BearerToken, int MaxNumThreads, string ColDelim = "`", string RowDelim = "~")
+        public DataTableConnector(string Metadata, string BearerToken, int MaxNumThreads)
         {
             // init variables
-            this.Api                     = new DataTableConnectorApi(BearerToken, MaxNumThreads);
+            this.Api                     = new ApiClient(BearerToken, MaxNumThreads);
             this.Metadata                = Metadata;
-            this.MetadataRows            = Metadata.Split(RowDelim);
+            this.MetadataRows            = Metadata.Split("~");
             this.MetadataObjects         = new List<MetadataObject>();
             this.MetadataObjectsByOutput = new Dictionary<string, MetadataObject>();
 
