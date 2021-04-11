@@ -1,8 +1,13 @@
 using System;
+using System.IO;
+using System.Data;
 using RestSharp;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using AimsUtility.DataTables;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AimsUtility.Api
 {
@@ -36,6 +41,57 @@ namespace AimsUtility.Api
             _semaphore = new Semaphore(0, MaxNumberOfThreads);
         }
 
+
+        /// <summary>
+        /// Reruns the aqua job and gets the job publish link after waiting for completion.
+        /// </summary>
+        /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
+        /// <param name="JobID">The job to rerun and get the publish link for</param>
+        /// <returns>The publish link. We need to return this in case it's a public link</returns>
+        public async Task<string> RerunAndWaitForJobPublishLink(string BaseUrl, string JobID)
+        {
+            // rerun the job
+            var rerunResponse = await this.PostAsync($"{BaseUrl}/jobsmanagement/v1.0/backgroundjob/{JobID}/rerun");
+            if(!rerunResponse.IsSuccessful)
+                throw new Exception($"Error rerunning aqua job {JobID}: {rerunResponse.Content}");
+
+            // loop until the job is complete
+            string status = null;
+            string publishLink = null;
+            do{
+                // make the api call for the status of the job
+                var statusResponse = await this.GetAsync($"{BaseUrl}/jobsmanagement/v1.0/backgroundjob/{JobID}", 3, false);
+                if(!statusResponse.IsSuccessful)
+                    throw new Exception($"Error fetching job status for {JobID}: {statusResponse.Content}");
+
+                // get the status of the job
+                var responseJson = (JObject)JsonConvert.DeserializeObject(statusResponse.Content);
+                status = (string)responseJson["jobStatus"];
+                publishLink = (string)responseJson["publishLink"];
+            }while(status != "Completed");
+
+            return publishLink;
+        }
+
+
+        /// <summary>
+        /// Gets data from the publish link (attaches a bearer token in case it's private) and 
+        /// converts the resulting CSV into a data table
+        /// </summary>
+        /// <param name="PublishLink">The publish link from which we will get the data</param>
+        /// <returns>A data table representing the data from the publish link</returns>
+        public async Task<DataTable> GetAquaCsvData(string PublishLink)
+        {
+            // publish links should never be cached responses
+            var publishLinkResponse = await this.GetAsync(PublishLink, 3, false);
+            if(!publishLinkResponse.IsSuccessful)
+                throw new Exception("Retrieval of data from publish link was unsuccessful: " + PublishLink);
+
+            // convert to CSV
+            var tableFromCsv = DataTableUtillity.ParseFromCsv(publishLinkResponse.Content);
+            return tableFromCsv;
+        }
+
         
         /// <summary>
         /// Calls the API generically using a semaphore and
@@ -62,6 +118,20 @@ namespace AimsUtility.Api
             return restResponse;
         }
 
+        /// <summary>
+        /// Calls the API generically using a semaphore. Adds the bearer
+        /// token to the call.
+        /// </summary>
+        /// <param name="url">The complete url to retrieve the data from</param>
+        /// <param name="MaxNumberOfIterations">The number of retries to make of the API call before returning</param>
+        public async Task<IRestResponse> PostAsync(string url, int MaxNumberOfIterations = 3)
+        {
+            var restClient = new RestClient(url);
+            var restRequest = new RestRequest(Method.POST);
+            restRequest.AddHeader("Authorization", Bearer);
+
+            return await this.ExecuteAsync(restClient, restRequest, MaxNumberOfIterations);
+        }
 
         /// <summary>
         /// The most generic api call you could ever make:
