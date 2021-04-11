@@ -65,6 +65,11 @@ namespace AimsUtility.Api
             string status = null;
             string publishLink = null;
             do{
+                // choose a random time between 3 and 7 seconds to sleep for to avoid overlap in parallel calls
+                int seed = Convert.ToInt32(DateTimeOffset.Now.ToUnixTimeMilliseconds() % Int32.MaxValue);
+                var randms = new Random(seed).Next(3000, 7000);
+                Thread.Sleep(randms);
+
                 // make the api call for the status of the job
                 var statusResponse = await this.GetAsync($"{BaseUrl}/jobsmanagement/v1.0/backgroundjob/{JobID}", 3, false);
                 if(!statusResponse.IsSuccessful)
