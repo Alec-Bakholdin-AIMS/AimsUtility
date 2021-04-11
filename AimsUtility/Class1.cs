@@ -2,7 +2,11 @@
 
 namespace AimsUtility
 {
-    public class Class1
+    public static class Class1
     {
+        public static int test()
+        {
+            return 1;
+        }
     }
 }
