@@ -11,9 +11,15 @@ using Newtonsoft.Json.Linq;
 
 namespace AimsUtility.Api
 {
+    /// <summary>
+    /// A client to be used for calling the AIMS Api
+    /// </summary>
     public class ApiClient
     {
         
+        /// <summary>
+        /// Bearer token to be attached to every Api call
+        /// </summary>
         public string Bearer;
         private Semaphore _semaphore;
         private static Dictionary<string, IRestResponse> ApiCache = new Dictionary<string, IRestResponse>();

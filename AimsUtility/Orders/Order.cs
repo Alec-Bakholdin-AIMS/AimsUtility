@@ -4,14 +4,22 @@ using Newtonsoft.Json;
 
 namespace AimsUtility.Orders
 {
+    /// <summary>
+    /// Base Order Class
+    /// </summary>
     public class Order : OrderJsonFields
     {
+        /// <summary>
+        /// Read-Only list of LineItem objects in this order.
+        /// </summary>
         [JsonProperty(PropertyName = "lineItems")]
         public IList<LineItem> LineItems; // read-only list so users don't use unsupported methods of adding line items
         private List<LineItem> LineItemList; // read-write list of line items
         private Dictionary<string, LineItem> LineItemDict; // dictionary to search line item by styleColorID
 
-        // base constructor initalizes lineItems
+        /// <summary>
+        /// base constructor initalizes lineItems
+        /// </summary>
         public Order()
         {
             LineItemList = new List<LineItem>();
@@ -54,6 +62,11 @@ namespace AimsUtility.Orders
 
         // * * * * * * * * * * Line Item Manipulation * * * * * * * * * *
 
+        // Because then <summary> and <param> won't work and it won't show up in
+        // when I mouse over something. ye
+        // There's no better way :(
+        // Those classes I showed you tho, are just json post objects
+        // they're basically just fields, so I'm not super concerned with how it looks
 
         /// <summary>
         /// Gets the line item with the corresponding styleColorID.
@@ -132,10 +145,20 @@ namespace AimsUtility.Orders
         
 
         // * * * * * * * * * * Indexers * * * * * * * * * *
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <value>The line item at the specified index</value>
         public LineItem this[int i]
         {
             get => LineItemList[i];
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <value>The line item with the specified styleColorID</value>
         public LineItem this[string styleColorID]
         {
             get => this.GetLineItem(styleColorID);

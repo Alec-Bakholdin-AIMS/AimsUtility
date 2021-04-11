@@ -14,7 +14,7 @@ namespace AimsUtility.DataTables
         /// <summary>
         /// Creates a data
         /// </summary>
-        /// <param name="CsvContents">A stream containing the CsvContents
+        /// <param name="CsvContents">A stream containing the CsvContents</param>
         /// <returns></returns>
         public static DataTable ParseFromCsv(string CsvContents)
         {
@@ -91,7 +91,7 @@ namespace AimsUtility.DataTables
         /// </summary>
         /// <param name="table">The table to convert</param>
         /// <param name="dateFormat">The string format of dates</param>
-        /// <returns>A MemoryStream representing the data in the CSV file</param>
+        /// <returns>A MemoryStream representing the data in the CSV file</returns>
         public static MemoryStream ToCSV(this DataTable table, string dateFormat = "yyyy-MM-dd")
         {
             // get columns and create stream to output

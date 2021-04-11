@@ -6,9 +6,16 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace AimsUtility.DataTables{
+    /// <summary>
+    /// An input table to be passed to DataTableConnector.ConnectTables
+    /// when it is necessary to move data from this table to an OutputDataTable
+    /// </summary>
     public class InputDataTable : DataTable{
         
         // * * * * * * * * * * Storing Exceptions * * * * * * * * * *
+        /// <summary>
+        /// Exceptions that occur during DataTableConnector.ConnectTables
+        /// </summary>
         public ExceptionContainer TableExceptions;
 
 
