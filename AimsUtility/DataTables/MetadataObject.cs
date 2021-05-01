@@ -34,7 +34,7 @@ namespace AimsUtility.DataTables{
 
 
         /// <summary>
-        /// Primary constructor for the metadata objects,
+        /// Primary constructor for the metadata objects, 
         /// used to help with data table connection
         /// </summary>
         /// <param name="RowStr">String of the metadata representing the data to be inserted into this object. Columns are separated by backticks (`)</param>

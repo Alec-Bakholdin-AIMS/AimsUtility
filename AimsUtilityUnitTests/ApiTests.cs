@@ -27,6 +27,20 @@ namespace AimsUtilityUnitTests
             Assert.AreEqual(response.Content, expected);
         }
 
+        [TestMethod]
+        public async Task ApiSemaphoreBehavior()
+        {
+            var restClient = new RestClient("https://apieast.aims360.rest/codes/v1.0/currencies?$filter=currencyCode eq 'AUD'");
+            var restRequest = new RestRequest(Method.GET);
+            restRequest.AddHeader("Authorization", DemoBearer);
+
+            var apiClient = new ApiClient(DemoBearer, 1);
+            var response = await apiClient.ExecuteAsync(restClient, restRequest);
+
+            var expected = "{\"@odata.context\":\"https://apieast1.aims360.rest/v1.0/$metadata#Currencies\",\"value\":[{\"currencyID\":\"3bb08470-6a63-ea11-a94c-000d3a13013b\",\"currencyCode\":\"AUD\",\"currencyName\":\"Australian dollar\",\"currencySymbol\":\"$\",\"currencyEnabled\":false}]}";
+            Assert.AreEqual(response.Content, expected);
+        }
+
         /// <summary>
         /// Gets the field value from a json that is found
         /// at a local filepath, relative of course

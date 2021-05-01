@@ -1,9 +1,12 @@
-﻿using System;
+using System;
+using System.Reflection;
+using System.Linq;
 using AimsUtility.Api;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Threading.Tasks;
+using AimsUtility.Orders;
 
 
 namespace AimsUtilityConsole
@@ -15,7 +18,10 @@ namespace AimsUtilityConsole
 
         static async Task Main(string[] args)
         {
-            var publishLink = await (new ApiClient(DemoBearer)).RerunAndWaitForJobPublishLink("https://apiwest.aims360.rest", JobID);
+            var apiClient = new ApiClient(DemoBearer);
+            apiClient.LoggingFunction = Console.WriteLine;
+            var styles = await apiClient.AimsODataFeed("https://apiwest.aims360.rest/StyleColors/v1.1/StyleColors");
+            styles.ForEach(s => Console.WriteLine((string)s["style"]));
         }
 
 

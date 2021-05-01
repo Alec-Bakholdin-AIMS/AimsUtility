@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
 
+// TODO: Anonymous object to data table
+
 namespace AimsUtility.DataTables
 {
-    public static class DataTableUtillity
+    public static class DataTableUtility
     {
         /// <summary>
         /// Creates a data
@@ -22,6 +24,7 @@ namespace AimsUtility.DataTables
 
             using(var adapter = new GenericParserAdapter(textReader))
             {
+                adapter.FirstRowHasHeader = true;
                 var table = adapter.GetDataTable();
                 return table;
             }
@@ -137,8 +140,9 @@ namespace AimsUtility.DataTables
         /// Uses EPPlus's non-commercial license to convert the data table into an Xlsx file
         /// </summary>
         /// <param name="table">The table to be converted</param>
+        /// <param name="ColumnOrder">Including this will use these column names instead of just fetching from the table. This will also preserve the order in the way you want.</param>
         /// <returns>The memory stream representing the file</returns>
-        public static MemoryStream ToXLSX(this DataTable table)
+        public static MemoryStream ToXLSX(this DataTable table, string[] ColumnOrder = null)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;           
             
@@ -146,7 +150,7 @@ namespace AimsUtility.DataTables
             var package = new ExcelPackage();
             var ws = package.Workbook.Worksheets.Add("sheet1");
 
-            var colNames = table.GetColumnNames();
+            var colNames = ColumnOrder == null ? table.GetColumnNames() : ColumnOrder.ToList();
             // set headers
             for(int i = 0; i < colNames.Count; i++)
             {
