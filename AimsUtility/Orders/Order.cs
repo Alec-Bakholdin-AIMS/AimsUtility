@@ -120,6 +120,7 @@ namespace AimsUtility.Orders
             LineItemDict.Remove(StyleColorID);
         }
 
+         
 
 
 
@@ -138,7 +139,17 @@ namespace AimsUtility.Orders
 
         
 
-        // * * * * * * * * * * Indexers * * * * * * * * * *
+        // * * * * * * * * * * Indexers and General Overrides * * * * * * * * * *
+
+        /// <summary>
+        /// Overrides the default ToString() method by returning the json
+        /// representation of this Order object.
+        /// </summary>
+        /// <returns>A json string that can be POSTed to AIMS's API</returns>
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
 
         /// <summary>
         /// 

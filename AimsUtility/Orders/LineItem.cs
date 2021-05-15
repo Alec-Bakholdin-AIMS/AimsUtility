@@ -4,18 +4,28 @@ using Newtonsoft.Json;
 
 namespace AimsUtility.Orders
 {
+    /// <summary>
+    /// A class representing a single entry in the lineItems JArray in the AIMS order json
+    /// </summary>
     public class LineItem : LineItemJsonFields
     {
-        // order which this belongs to
+        /// <summary>
+        /// Variable that keeps track of the parent order.
+        /// </summary>
         [JsonIgnore]
         public Order ParentOrder;
 
-        // size containers
+        /// <summary>
+        /// A read-only list containing all the Size objects that belong to this line item
+        /// </summary>
         [JsonProperty(PropertyName = "sizes")]
         public IList<Size> Sizes;
         private List<Size> SizeList;
         private Dictionary<string, Size> SizeDict;
 
+        /// <summary>
+        /// Base constructor that only initializes the sizes list.
+        /// </summary>
         public LineItem()
         {
             SizeList = new List<Size>();
@@ -23,6 +33,10 @@ namespace AimsUtility.Orders
             SizeDict = new Dictionary<string, Size>();
         }
 
+        /// <summary>
+        /// Constructor that initializes the sizes list and also sets the styleColorID of this object.
+        /// </summary>
+        /// <param name="StyleColorID">The styleColorID for this line item</param>
         public LineItem(string StyleColorID)
         {
             this.styleColorID = StyleColorID;
@@ -112,11 +126,20 @@ namespace AimsUtility.Orders
         }
 
 
-                // * * * * * * * * * * Indexers * * * * * * * * * *
+        // * * * * * * * * * * Indexers * * * * * * * * * *
+        /// <summary>
+        /// Reference a size by its position
+        /// </summary>
+        /// <value>A size object at the position i in the Sizes list</value>
         public Size this[int i]
         {
             get => SizeList[i];
         }
+
+        /// <summary>
+        /// Reference a size by name
+        /// </summary>
+        /// <value>A Size object with the sizeName 'sizeName'</value>
         public Size this[string sizeName]
         {
             get => this.GetSize(sizeName);

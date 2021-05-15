@@ -2,6 +2,10 @@ using System;
 
 namespace AimsUtility.Orders
 {
+    /// <summary>
+    /// A few helper methods for the Order class, which is effectively a structured
+    /// json object.
+    /// </summary>
     public static class JsonHelperMethods
     {
         /// <summary>
@@ -12,6 +16,7 @@ namespace AimsUtility.Orders
         /// address object are not supported. It should also be noted that this does
         /// not support inserting into arrays quite yet.
         /// </summary>
+        /// <param name="Obj">The object to insert into</param>
         /// <param name="Path">The path to be inserted, of the format "one/two"</param>
         /// <param name="Value">The value to be inserted. Should be a primitive (e.g. string, double, etc.), otherwise there will be undefined behavior</param>
         public static void InsertValueByPath(this object Obj, string Path, object Value)
