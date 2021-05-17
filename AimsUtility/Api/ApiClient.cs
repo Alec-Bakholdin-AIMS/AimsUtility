@@ -272,6 +272,7 @@ namespace AimsUtility.Api
         /// token to the call.
         /// </summary>
         /// <param name="Url">The complete url to retrieve the data from</param>
+        /// <param name="JsonPayload">The body (json format) to send with the POST request</param>
         /// <param name="MaxNumberOfIterations">The number of retries to make of the API call before returning</param>
         public async Task<IRestResponse> PostAsync(string Url, string JsonPayload = null, int MaxNumberOfIterations = 3)
         {

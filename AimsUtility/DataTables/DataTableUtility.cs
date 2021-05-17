@@ -11,6 +11,9 @@ using OfficeOpenXml;
 
 namespace AimsUtility.DataTables
 {
+    /// <summary>
+    /// A set of useful functions for manipulating DataTables.
+    /// </summary>
     public static class DataTableUtility
     {
         /// <summary>
@@ -32,7 +35,8 @@ namespace AimsUtility.DataTables
 
         /// <summary>
         /// Copies the data from the source table to the target table.
-        /// They must have the same schema (columns)
+        /// They must have the same schema (columns). DATA IN THE TARGET
+        /// TABLE WILL BE OVERWRITTEN.
         /// </summary>
         /// <param name="SourceTable">The source of the data</param>
         /// <param name="TargetTable">The location to put the data into. ANY DATA HERE WILL BE OVERWRITTEN</param>
