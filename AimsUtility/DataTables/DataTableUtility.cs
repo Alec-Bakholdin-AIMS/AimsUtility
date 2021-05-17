@@ -137,12 +137,12 @@ namespace AimsUtility.DataTables
         }
 
         /// <summary>
-        /// Uses EPPlus's non-commercial license to convert the data table into an Xlsx file
+        /// Uses EPPlus's non-commercial license to convert the data table into an Xlsx ExcelPackage
         /// </summary>
         /// <param name="table">The table to be converted</param>
         /// <param name="ColumnOrder">Including this will use these column names instead of just fetching from the table. This will also preserve the order in the way you want.</param>
-        /// <returns>The memory stream representing the file</returns>
-        public static MemoryStream ToXLSX(this DataTable table, string[] ColumnOrder = null)
+        /// <returns>The ExcelPackage representing the table</returns>
+        public static ExcelPackage ToXlsx(this DataTable table, string[] ColumnOrder = null)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;           
             
@@ -166,7 +166,20 @@ namespace AimsUtility.DataTables
                 }
             }
 
-            return new MemoryStream(package.GetAsByteArray());
+            return package;
+        }
+
+        /// <summary>
+        /// Get a MemoryStream representing the Xlsx File created from the data table.
+        /// </summary>
+        /// <param name="table">The table to be converted</param>
+        /// <param name="ColumnOrder">Including this will use these column names instead of just fetching from the table. This will also preserve the order in the way you want.</param>
+        /// <returns>The Memory Stream representing the Xlsx file</returns>
+        public static MemoryStream ToXlsxFile(this DataTable table, string[] ColumnOrder = null)
+        {
+            var excelPackage = table.ToXlsx(ColumnOrder);
+            var memStream = new MemoryStream(excelPackage.GetAsByteArray());
+            return memStream;
         }
     }
 }

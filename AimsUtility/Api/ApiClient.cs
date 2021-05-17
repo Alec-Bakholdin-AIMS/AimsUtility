@@ -121,12 +121,11 @@ namespace AimsUtility.Api
 
                 // tell the user which iteration we're on
                 String iterationString = MaxNumIterations == null ? $"{i}" : $"{i}/{MaxNumIterations}";
-                LoggingFunction?.Invoke(JobNameString + $"Iteration {iterationString}. Attempting to retrieve status.");
 
                 // get the status of the job
                 var responseJson = (JObject)JsonConvert.DeserializeObject(statusResponse.Content);
                 status = (string)responseJson["jobStatus"];
-                if(status != "Completed")
+                if(status != "Completed" && status != "Failed")
                     status = (string)responseJson["jobStatusText"];
                 publishLink = (string)responseJson["publishLink"];
 
@@ -134,11 +133,11 @@ namespace AimsUtility.Api
 
                 i++;
             // finish when the job is complete or if we've tried enough times (infinite if MaxNumIterations=null)
-            }while(status != "Completed" || (MaxNumIterations != null && i > MaxNumIterations));
+            }while((status != "Completed" && status != "Failed") || (MaxNumIterations != null && i > MaxNumIterations));
 
             // edge case when we can't wait this long
             if(status != "Completed")
-                throw new Exception($"Job {JobID} took more than {MaxNumIterations} iterations");
+                throw new Exception($"{JobNameString}Job {JobID} was not successfully completed");
 
             return publishLink;
         }
