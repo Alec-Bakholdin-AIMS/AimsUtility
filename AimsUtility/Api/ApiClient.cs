@@ -126,6 +126,8 @@ namespace AimsUtility.Api
                 // get the status of the job
                 var responseJson = (JObject)JsonConvert.DeserializeObject(statusResponse.Content);
                 status = (string)responseJson["jobStatus"];
+                if(status != "Completed")
+                    status = (string)responseJson["jobStatusText"];
                 publishLink = (string)responseJson["publishLink"];
 
                 LoggingFunction?.Invoke(JobNameString + $"Iteration {iterationString}. Status: {status}.");
