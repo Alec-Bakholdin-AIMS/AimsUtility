@@ -7,6 +7,8 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using AimsUtility.Orders;
+using AimsUtility.DataTables;
+using System.Data;
 
 
 namespace AimsUtilityConsole
@@ -18,10 +20,16 @@ namespace AimsUtilityConsole
 
         static async Task Main(string[] args)
         {
-            var apiClient = new ApiClient(DemoBearer);
-            apiClient.LoggingFunction = Console.WriteLine;
-            var styles = await apiClient.AimsODataFeed("https://apiwest.aims360.rest/StyleColors/v1.1/StyleColors");
-            styles.ForEach(s => Console.WriteLine((string)s["style"]));
+            var table = new DataTable();
+            for(int i = 0; i < 10; i++)
+            {
+                table.Columns.Add($"{i}");
+            }
+
+            table.Columns[3].ColumnName = "testing";
+
+            table.Rows.Add(table.NewRow());
+            table.Columns.Add("test");
         }
 
 

@@ -62,12 +62,26 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
         /// <param name="JobID">The job to rerun and get the publish link for</param>
-        /// <param name="MaxNumIterations">The number of times to poll the API before giving up</param>
+        /// <param name="MaxNumIterations">The number of times to poll the API before giving up. No limit if left null</param>
         /// <param name="JobName">The name of the job, in case there are multiple parallel jobs</param>
         /// <returns>The publish link. We need to return this in case it's a public link</returns>
         public async Task<string> RerunAndWaitForJobPublishLink(string BaseUrl, string JobID, int? MaxNumIterations = null, string JobName = null)
         {
-            var JobNameString = JobName == null ? JobName + ": " : "";
+            await RerunJob(BaseUrl, JobID, JobName);
+            var publishLink = await WaitForPublishLink(BaseUrl, JobID, MaxNumIterations, JobName);
+
+            return publishLink;
+        }
+
+        /// <summary>
+        /// Reruns the job assocated with the jobID parameter.
+        /// </summary>
+        /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
+        /// <param name="JobID">The job to rerun and get the publish link for</param>
+        /// <param name="JobName">The name of the job, in case there are multiple parallel jobs</param>
+        public async Task RerunJob(string BaseUrl, string JobID, string JobName = null)
+        {
+            var JobNameString = JobName != null ? JobName + ": " : "";
 
             // rerun the job
             LoggingFunction?.Invoke(JobNameString + "Rerunning job");
@@ -75,6 +89,19 @@ namespace AimsUtility.Api
             if(!rerunResponse.IsSuccessful)
                 throw new Exception($"Error rerunning aqua job {JobID}: {rerunResponse.Content}");
             LoggingFunction?.Invoke(JobNameString + "Successfully reran job");
+        }
+
+        /// <summary>
+        /// Waits for a job to finish, returns the publish link when it does.
+        /// </summary>
+        /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
+        /// <param name="JobID">The job to rerun and get the publish link for</param>
+        /// <param name="MaxNumIterations">The number of times to poll the API before giving up. No limit if left null</param>
+        /// <param name="JobName">The name of the job, in case there are multiple parallel jobs</param>
+        /// <returns>The publish link. We need to return this in case it's a public link</returns>
+        public async Task<string> WaitForPublishLink(string BaseUrl, string JobID, int? MaxNumIterations = null, string JobName = null)
+        {
+            var JobNameString = JobName != null ? JobName + ": " : "";
 
             // loop until the job is complete
             string status = null;
@@ -92,6 +119,7 @@ namespace AimsUtility.Api
                 if(!statusResponse.IsSuccessful)
                     throw new Exception($"Error fetching job status for {JobID}: {statusResponse.Content}");
 
+                // tell the user which iteration we're on
                 String iterationString = MaxNumIterations == null ? $"{i}" : $"{i}/{MaxNumIterations}";
                 LoggingFunction?.Invoke(JobNameString + $"Iteration {iterationString}. Attempting to retrieve status.");
 
@@ -102,7 +130,13 @@ namespace AimsUtility.Api
 
                 LoggingFunction?.Invoke(JobNameString + $"Iteration {iterationString}. Status: {status}.");
 
-            }while(status != "Completed" || (MaxNumIterations != null && i++ >= MaxNumIterations));
+                i++;
+            // finish when the job is complete or if we've tried enough times (infinite if MaxNumIterations=null)
+            }while(status != "Completed" || (MaxNumIterations != null && i > MaxNumIterations));
+
+            // edge case when we can't wait this long
+            if(status != "Completed")
+                throw new Exception($"Job {JobID} took more than {MaxNumIterations} iterations");
 
             return publishLink;
         }
@@ -236,12 +270,14 @@ namespace AimsUtility.Api
         /// Calls the API generically using a semaphore. Adds the bearer
         /// token to the call.
         /// </summary>
-        /// <param name="url">The complete url to retrieve the data from</param>
+        /// <param name="Url">The complete url to retrieve the data from</param>
         /// <param name="MaxNumberOfIterations">The number of retries to make of the API call before returning</param>
-        public async Task<IRestResponse> PostAsync(string url, int MaxNumberOfIterations = 3)
+        public async Task<IRestResponse> PostAsync(string Url, string JsonPayload = null, int MaxNumberOfIterations = 3)
         {
-            var restClient = new RestClient(url);
+            var restClient = new RestClient(Url);
             var restRequest = new RestRequest(Method.POST);
+            if(JsonPayload != null)
+                restRequest.AddJsonBody(JsonPayload);
             restRequest.AddHeader("Authorization", Bearer);
 
             return await this.ExecuteAsync(restClient, restRequest, MaxNumberOfIterations);
