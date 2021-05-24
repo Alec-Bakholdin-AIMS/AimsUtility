@@ -268,7 +268,9 @@ namespace AimsUtility.Api
             restRequest.AddHeader("Authorization", Bearer);
             var restResponse = await ExecuteAsync(restClient, restRequest, ApiParameters);
 
-            ApiCache[url] = restResponse;
+            lock(ApiCache){
+                ApiCache[url] = restResponse;
+            }
             return restResponse;
         }
 
