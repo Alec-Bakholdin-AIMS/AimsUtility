@@ -233,7 +233,7 @@ namespace AimsUtility.Api
         /// <param name="Url">The exact url to call from the API</param>
         /// <param name="JTokenPath">The exact static path to find the JToken at</param>
         /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
-        /// <returns>The JToken at the path</returns>
+        /// <returns>The JToken at the path, or null if not present</returns>
         public async Task<JToken> GetTokenAsync(String Url, String JTokenPath, ApiParametersContainer ApiParameters = null)
         {
             // get the response from the API

@@ -58,10 +58,10 @@ namespace AimsUtility.Orders
         /// Newtonsoft's SelectToken syntax. Simply does this by converting
         /// it to JObject then selecting
         /// </summary>
-        /// <param name="Obj"></param>
-        /// <param name="Path"></param>
-        /// <returns></returns>
-        public static object GetValueByPath(this object Obj, string Path)
+        /// <param name="Obj">The object whose fields we are searching through</param>
+        /// <param name="Path">The path to look up</param>
+        /// <returns>The JToken value at the location</returns>
+        public static JToken GetValueByPath(this object Obj, string Path)
         {
             var jsonObj = (JObject)JToken.FromObject(Obj);
             return jsonObj.SelectToken(Path);
