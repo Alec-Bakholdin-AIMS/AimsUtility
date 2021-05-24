@@ -137,6 +137,18 @@ namespace AimsUtility.Orders
             LineItemDict.Remove(StyleColorID);
         }
 
+        /// <summary>
+        /// Inserts a line error into LineErrors, creating a new list if necesesary
+        /// </summary>
+        /// <param name="LineError">The error to insert.</param>
+        /// <param name="RowNum">The row number to insert for</param>
+        public void InsertLineError(string LineError, int RowNum)
+        {
+            if(!LineErrors.ContainsKey(RowNum))
+                LineErrors[RowNum] = new List<string>();
+            LineErrors[RowNum].Add(LineError);
+        }
+
          
 
 
