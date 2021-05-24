@@ -21,11 +21,11 @@ namespace AimsUtility.Api
     {
         
         /// <summary>
-        /// Bearer token to be attached to every Api call
+        /// Bearer token to be attached to every Api call.
         /// </summary>
         public string Bearer;
         private Semaphore _semaphore;
-        private static Dictionary<string, IRestResponse> ApiCache = new Dictionary<string, IRestResponse>();
+        private Dictionary<string, IRestResponse> ApiCache;
 
         /// <summary>
         /// A void function that takes a string which the API can use to print logging information to.
@@ -35,12 +35,15 @@ namespace AimsUtility.Api
 
 
         /// <summary>
-        /// Basic constructor that allows the user to pass a bearer token
+        /// Basic constructor that allows the user to pass a bearer token. Sets
+        /// the maximum number of concurrend threads to 50, the default
         /// </summary>
         /// <param name="Bearer"></param>
         public ApiClient(string Bearer)
         {
             this.Bearer = Bearer;
+            _semaphore = new Semaphore(50, 50);
+            ApiCache = new Dictionary<string, IRestResponse>();
         }
 
 
@@ -54,6 +57,7 @@ namespace AimsUtility.Api
         {
             this.Bearer = Bearer;
             _semaphore = new Semaphore(MaxNumberOfThreads, MaxNumberOfThreads);
+            ApiCache = new Dictionary<string, IRestResponse>();
         }
 
 
@@ -62,13 +66,12 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
         /// <param name="JobID">The job to rerun and get the publish link for</param>
-        /// <param name="MaxNumIterations">The number of times to poll the API before giving up. No limit if left null</param>
-        /// <param name="JobName">The name of the job, in case there are multiple parallel jobs</param>
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
         /// <returns>The publish link. We need to return this in case it's a public link</returns>
-        public async Task<string> RerunAndWaitForJobPublishLink(string BaseUrl, string JobID, int? MaxNumIterations = null, string JobName = null)
+        public async Task<string> RerunAndWaitForJobPublishLink(string BaseUrl, string JobID, ApiParametersContainer ApiParameters = null)
         {
-            await RerunJob(BaseUrl, JobID, JobName);
-            var publishLink = await WaitForPublishLink(BaseUrl, JobID, MaxNumIterations, JobName);
+            await RerunJob(BaseUrl, JobID, ApiParameters);
+            var publishLink = await WaitForPublishLink(BaseUrl, JobID, ApiParameters);
 
             return publishLink;
         }
@@ -78,10 +81,10 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
         /// <param name="JobID">The job to rerun and get the publish link for</param>
-        /// <param name="JobName">The name of the job, in case there are multiple parallel jobs</param>
-        public async Task RerunJob(string BaseUrl, string JobID, string JobName = null)
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
+        public async Task RerunJob(string BaseUrl, string JobID, ApiParametersContainer ApiParameters = null)
         {
-            var JobNameString = JobName != null ? JobName + ": " : "";
+            var JobNameString = ApiParameters?.JobName != null ? ApiParameters?.JobName + ": " : "";
 
             // rerun the job
             LoggingFunction?.Invoke(JobNameString + "Rerunning job");
@@ -96,12 +99,11 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="BaseUrl">This should be either https://apieast.aims360.rest or https://apiwest.aims360.rest</param>
         /// <param name="JobID">The job to rerun and get the publish link for</param>
-        /// <param name="MaxNumIterations">The number of times to poll the API before giving up. No limit if left null</param>
-        /// <param name="JobName">The name of the job, in case there are multiple parallel jobs</param>
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
         /// <returns>The publish link. We need to return this in case it's a public link</returns>
-        public async Task<string> WaitForPublishLink(string BaseUrl, string JobID, int? MaxNumIterations = null, string JobName = null)
+        public async Task<string> WaitForPublishLink(string BaseUrl, string JobID, ApiParametersContainer ApiParameters = null)
         {
-            var JobNameString = JobName != null ? JobName + ": " : "";
+            var JobNameString = ApiParameters?.JobName != null ? ApiParameters?.JobName + ": " : "";
 
             // loop until the job is complete
             string status = null;
@@ -115,12 +117,12 @@ namespace AimsUtility.Api
 
 
                 // make the api call for the status of the job
-                var statusResponse = await this.GetAsync($"{BaseUrl}/jobsmanagement/v1.0/backgroundjob/{JobID}", 3, false);
+                var statusResponse = await this.GetAsync($"{BaseUrl}/jobsmanagement/v1.0/backgroundjob/{JobID}", ApiParameters);
                 if(!statusResponse.IsSuccessful)
                     throw new Exception($"Error fetching job status for {JobID}: {statusResponse.Content}");
 
                 // tell the user which iteration we're on
-                String iterationString = MaxNumIterations == null ? $"{i}" : $"{i}/{MaxNumIterations}";
+                String iterationString = ApiParameters?.MaxNumIterations == null ? $"{i}" : $"{i}/{(ApiParameters?.MaxNumIterations ?? -1)}";
 
                 // get the status of the job
                 var responseJson = (JObject)JsonConvert.DeserializeObject(statusResponse.Content);
@@ -133,7 +135,7 @@ namespace AimsUtility.Api
 
                 i++;
             // finish when the job is complete or if we've tried enough times (infinite if MaxNumIterations=null)
-            }while((status != "Completed" && status != "Failed") || (MaxNumIterations != null && i > MaxNumIterations));
+            }while((status != "Completed" && status != "Failed") || (ApiParameters?.MaxNumIterations != null && i > (ApiParameters?.MaxNumIterations ?? -1)));
 
             // edge case when we can't wait this long
             if(status != "Completed")
@@ -145,23 +147,25 @@ namespace AimsUtility.Api
 
         /// <summary>
         /// Gets data from the publish link (attaches a bearer token in case it's private) and 
-        /// converts the resulting CSV into a data table
+        /// converts the resulting CSV into a data table. If no parameters are included, 
         /// </summary>
         /// <param name="PublishLink">The publish link from which we will get the data</param>
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
         /// <returns>A data table representing the data from the publish link</returns>
-        public async Task<DataTable> GetAquaCsvData(string PublishLink)
+        public async Task<DataTable> GetAquaCsvData(string PublishLink, ApiParametersContainer ApiParameters = null)
         {
             LoggingFunction?.Invoke($"Fetching CSV data from {PublishLink}");
 
-            // publish links should never be cached responses
-            var publishLinkResponse = await this.GetAsync(PublishLink, 3, false);
+            // publish links should never be cached responses unless specified
+            var publishLinkResponse = await this.GetAsync(PublishLink, (ApiParameters ?? new ApiParametersContainer(){UseCaching = false}));
             if(!publishLinkResponse.IsSuccessful)
                 throw new Exception("Retrieval of data from publish link was unsuccessful: " + PublishLink);
 
             // convert to CSV
-            LoggingFunction?.Invoke($"Converting CSV data to DataTable");
+            var jobName = ApiParameters?.JobName == null ? "" : $"{ApiParameters?.JobName}: ";
+            LoggingFunction?.Invoke($"{jobName}Converting CSV data to DataTable");
             var tableFromCsv = DataTableUtility.ParseFromCsv(publishLinkResponse.Content);
-            LoggingFunction?.Invoke($"Successfully converted CSV data to DataTable");
+            LoggingFunction?.Invoke($"{jobName}Successfully converted CSV data to DataTable");
             return tableFromCsv;
         }
 
@@ -172,13 +176,14 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="Url">The url of the first page. Should not contain pagesize, $count or $skip</param>
         /// <param name="pagesize">The number of entries per page. This should be 250 by default, but it might change based on other specifications</param>
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
         /// <returns>A list of JObjects representing the feed.</returns>
-        public async Task<List<JObject>> AimsODataFeed(string Url, int pagesize=250)
+        public async Task<List<JObject>> AimsODataFeed(string Url, ApiParametersContainer ApiParameters = null, int pagesize=250)
         {
             // get first page
             LoggingFunction?.Invoke("Retrieving first page of feed");
             var firstPageUrl = Url + (Url.Contains("?") ? "&" : "?") + $"$count=true&pagesize={pagesize}";
-            var firstPageResponse = await this.GetAsync(firstPageUrl);
+            var firstPageResponse = await this.GetAsync(firstPageUrl, ApiParameters);
             if(!firstPageResponse.IsSuccessful) throw new Exception($"Error retrieving response from {firstPageUrl}: {firstPageResponse.Content}");
 
             // get count and data from first page
@@ -194,7 +199,7 @@ namespace AimsUtility.Api
             for(int i = 1; i < numPages; i++)
             {
                 var ithPageUrl = Url + (Url.Contains("?") ? "&" : "?") + $"pagesize={pagesize}&$skip={i*pagesize}";
-                taskList.Add(GetAsync(ithPageUrl));
+                taskList.Add(GetAsync(ithPageUrl, ApiParameters));
                 LoggingFunction?.Invoke($"Initialized fetch of page {i + 1}/{numPages}");
             }
 
@@ -227,11 +232,12 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="Url">The exact url to call from the API</param>
         /// <param name="JTokenPath">The exact static path to find the JToken at</param>
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
         /// <returns>The JToken at the path</returns>
-        public async Task<JToken> GetTokenAsync(String Url, String JTokenPath)
+        public async Task<JToken> GetTokenAsync(String Url, String JTokenPath, ApiParametersContainer ApiParameters = null)
         {
             // get the response from the API
-            var response = await this.GetAsync(Url);
+            var response = await this.GetAsync(Url, ApiParameters);
             if(!response.IsSuccessful)
                 throw new Exception($"Could not retrieve data from {Url}: {response.Content}");
 
@@ -249,19 +255,18 @@ namespace AimsUtility.Api
         /// and simply returns the previous result.
         /// </summary>
         /// <param name="url">The complete url to retrieve the data from</param>
-        /// <param name="MaxNumberOfIterations">The number of retries to make of the API call before returning</param>
-        /// <param name="useCaching">Determines whether or not to return cached results if the url matches previous calls. This is particularly useful if you're polling the API for a change in status</param>
-        public async Task<IRestResponse> GetAsync(string url, int MaxNumberOfIterations = 3, bool useCaching = true)
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
+        public async Task<IRestResponse> GetAsync(string url, ApiParametersContainer ApiParameters = null)
         {   
             // check to see if we've used this call before
-            if(ApiCache.ContainsKey(url) && useCaching)
+            if((ApiParameters?.UseCaching ?? false) && ApiCache.ContainsKey(url))
                 return ApiCache[url];
 
             // make API call using the generic api call, which uses semaphores
             var restClient = new RestClient(url);
             var restRequest = new RestRequest(Method.GET);
             restRequest.AddHeader("Authorization", Bearer);
-            var restResponse = await ExecuteAsync(restClient, restRequest, MaxNumberOfIterations);
+            var restResponse = await ExecuteAsync(restClient, restRequest, ApiParameters);
 
             ApiCache[url] = restResponse;
             return restResponse;
@@ -273,8 +278,8 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="Url">The complete url to retrieve the data from</param>
         /// <param name="JsonPayload">The body (json format) to send with the POST request</param>
-        /// <param name="MaxNumberOfIterations">The number of retries to make of the API call before returning</param>
-        public async Task<IRestResponse> PostAsync(string Url, string JsonPayload = null, int MaxNumberOfIterations = 3)
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
+        public async Task<IRestResponse> PostAsync(string Url, string JsonPayload = null, ApiParametersContainer ApiParameters = null)
         {
             var restClient = new RestClient(Url);
             var restRequest = new RestRequest(Method.POST);
@@ -282,7 +287,7 @@ namespace AimsUtility.Api
                 restRequest.AddJsonBody(JsonPayload);
             restRequest.AddHeader("Authorization", Bearer);
 
-            return await this.ExecuteAsync(restClient, restRequest, MaxNumberOfIterations);
+            return await this.ExecuteAsync(restClient, restRequest, ApiParameters);
         }
 
         /// <summary>
@@ -291,13 +296,13 @@ namespace AimsUtility.Api
         /// </summary>
         /// <param name="restClient"></param>
         /// <param name="restRequest"></param>
-        /// <param name="MaxNumberOfIterations"></param>
+        /// <param name="ApiParameters">Changes the behavior of the Api calls</param>
         /// <returns></returns>
-        public async Task<IRestResponse> ExecuteAsync(RestClient restClient, RestRequest restRequest, int MaxNumberOfIterations = 3)
+        public async Task<IRestResponse> ExecuteAsync(RestClient restClient, RestRequest restRequest, ApiParametersContainer ApiParameters = null)
         {
             IRestResponse restResponse = null;
             // main loop for retries
-            for(int i = 0; i < MaxNumberOfIterations; i++)
+            for(int i = 0; i < (ApiParameters?.MaxNumIterations ?? 3); i++)
             {
                 _semaphore?.WaitOne(); // allow up to 5 threads to call aims at a time, so as to not overload the servers
                 restResponse = await restClient.ExecuteAsync(restRequest);
@@ -312,6 +317,10 @@ namespace AimsUtility.Api
                     var timeInSeconds = (int)Math.Pow(2, i);
                     Thread.Sleep(timeInSeconds*1000);
                 }
+
+                // make this an infinite infinite loop if maxnumiterations is set to null
+                if(ApiParameters != null && ApiParameters.MaxNumIterations == null)
+                    i--;
             }
 
             return restResponse;

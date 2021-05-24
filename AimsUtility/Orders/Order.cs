@@ -18,13 +18,30 @@ namespace AimsUtility.Orders
         private Dictionary<string, LineItem> LineItemDict; // dictionary to search line item by styleColorID
 
         /// <summary>
+        /// Errors for each line (e.g. style doesn't exist)
+        /// </summary>
+        [JsonIgnore]
+        public Dictionary<int, List<string>> LineErrors;
+        /// <summary>
+        /// Errors for the whole order (e.g. mismatched headers)
+        /// </summary>
+        [JsonIgnore]
+        public List<string> OrderErrors;
+
+
+        /// <summary>
         /// base constructor initalizes lineItems
         /// </summary>
         public Order()
         {
+            // init line items
             LineItemList = new List<LineItem>();
             LineItems = LineItemList.AsReadOnly();
             LineItemDict = new Dictionary<string, LineItem>();
+
+            // init error containers
+            LineErrors = new Dictionary<int, List<string>>();
+            OrderErrors = new List<string>();
         }
 
         /// <summary>

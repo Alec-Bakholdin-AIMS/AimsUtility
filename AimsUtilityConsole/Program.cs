@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Reflection;
 using System.Linq;
 using AimsUtility.Api;
@@ -18,18 +19,10 @@ namespace AimsUtilityConsole
         private static string DemoBearer = GetFieldFromJson("DemoBearerToken", "credentials.json");
         private static string JobID = GetFieldFromJson("JobID", "credentials.json");
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            var table = new DataTable();
-            for(int i = 0; i < 10; i++)
-            {
-                table.Columns.Add($"{i}");
-            }
-
-            table.Columns[3].ColumnName = "testing";
-
-            table.Rows.Add(table.NewRow());
-            table.Columns.Add("test");
+            var json = new JObject();
+            Console.WriteLine(json.SelectToken("value[0].test"));
         }
 
 
