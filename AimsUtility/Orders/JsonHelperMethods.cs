@@ -1,4 +1,6 @@
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AimsUtility.Orders
 {
@@ -49,6 +51,20 @@ namespace AimsUtility.Orders
 
             // insert the value at that field
             keyField.SetValue(targetObj, Value);
+        }
+
+        /// <summary>
+        /// Gets the value of a property or subproperty of an object using
+        /// Newtonsoft's SelectToken syntax. Simply does this by converting
+        /// it to JObject then selecting
+        /// </summary>
+        /// <param name="Obj"></param>
+        /// <param name="Path"></param>
+        /// <returns></returns>
+        public static object GetValueByPath(this object Obj, string Path)
+        {
+            var jsonObj = (JObject)JToken.FromObject(Obj);
+            return jsonObj.SelectToken(Path);
         }
 
     }
