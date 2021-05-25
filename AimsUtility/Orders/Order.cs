@@ -43,7 +43,12 @@ namespace AimsUtility.Orders
         /// </summary>
         [JsonIgnore]
         public bool CreatedOrderSuccessfully = false;
-
+        /// <summary>
+        /// A place to put things that aren't errors, but that you want to keep
+        /// a note of. For example, you created a client while making this order.
+        /// </summary>
+        [JsonIgnore]
+        public List<string> OrderNotes;
 
         /// <summary>
         /// base constructor initalizes lineItems
@@ -58,6 +63,9 @@ namespace AimsUtility.Orders
             // init error containers
             LineErrors = new Dictionary<int, List<string>>();
             OrderErrors = new List<string>();
+
+            // init order notes
+            OrderNotes = new List<string>();
         }
 
         /// <summary>
