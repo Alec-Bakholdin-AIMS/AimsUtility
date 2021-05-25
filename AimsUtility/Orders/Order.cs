@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
+using AimsUtility.Api;
+using RestSharp;
 
 namespace AimsUtility.Orders
 {
@@ -169,6 +173,34 @@ namespace AimsUtility.Orders
 
 
 
+
+
+
+
+        // * * * * * * * * * * API interactions * * * * * * * * * *
+
+        /// <summary>
+        /// Creates the order in AIMS using an ApiClient object.
+        /// </summary>
+        /// <param name="AimsApiClient">The ApiClient object to use.</param>
+        /// <returns>The response from the API</returns>
+        public async Task<IRestResponse> CreateOrder(ApiClient AimsApiClient)
+        {
+            var createUrl = $"https://apiwest.aims360.rest/orders/v1.0/order";
+            var jsonBody = this.ToString();
+            var createResponse = await AimsApiClient.PostAsync(createUrl, jsonBody);
+            var jsonResponse = (JObject)JsonConvert.DeserializeObject(createResponse.Content);
+            CreatedOrderSuccessfully = createResponse.IsSuccessful;
+
+            // successfully created the order
+            if(CreatedOrderSuccessfully)
+                this.CreatedOrderNumber = (string)jsonResponse["order"];
+            // some sort of error occurred
+            else
+                this.OrderErrors.Add((string)jsonResponse["error"]["message"]);
+        
+            return createResponse;
+        }
 
 
 
