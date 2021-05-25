@@ -28,6 +28,18 @@ namespace AimsUtility.Orders
         [JsonIgnore]
         public List<string> OrderErrors;
 
+        /// <summary>
+        /// The order number you receive from AIMS post-creation
+        /// </summary>
+        [JsonIgnore]
+        public string CreatedOrderNumber;
+        /// <summary>
+        /// Determines whether the order was created successfully in AIMS yet.
+        /// Obviously, this starts as false, as we haven't submitted the order.
+        /// </summary>
+        [JsonIgnore]
+        public bool CreatedOrderSuccessfully = false;
+
 
         /// <summary>
         /// base constructor initalizes lineItems
