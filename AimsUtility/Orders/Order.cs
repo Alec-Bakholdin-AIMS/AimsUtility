@@ -18,7 +18,10 @@ namespace AimsUtility.Orders
         /// </summary>
         [JsonProperty(PropertyName = "lineItems")]
         public IList<LineItem> LineItems; // read-only list so users don't use unsupported methods of adding line items
-        private List<LineItem> LineItemList; // read-write list of line items
+        /// <summary>
+        /// Read-Write-Enabled list of LineItem objects in this order.
+        /// </summary>
+        public List<LineItem> LineItemList; // read-write list of line items
         private Dictionary<string, LineItem> LineItemDict; // dictionary to search line item by styleColorID
 
         /// <summary>
